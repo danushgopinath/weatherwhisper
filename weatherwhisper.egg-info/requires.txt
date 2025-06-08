@@ -1,5 +1,0 @@
-click
-requests
-colorama
-tabulate
-configparser

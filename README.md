@@ -1,10 +1,6 @@
 # WeatherWhisper 🌦️
 
-![WeatherWhisper banner](images/banner.png)
-
-[![PyPI](https://img.shields.io/pypi/v/weatherwhisper?color=brightgreen)](https://pypi.org/project/weatherwhisper/) [![License](https://img.shields.io/github/license/yourname/weatherwhisper?color=blue)](LICENSE) [![CI](https://github.com/yourname/weatherwhisper/actions/workflows/ci.yml/badge.svg)](https://github.com/yourname/weatherwhisper/actions/workflows/ci.yml) [![Downloads](https://static.pepy.tech/badge/weatherwhisper)](https://pepy.tech/project/weatherwhisper)
-
-**WeatherWhisper** is a lightning‑fast, cross‑platform CLI for real‑time weather data and five‑day forecasts—no browser, no bloat. Powered by the free [OpenWeatherMap](https://openweathermap.org/api) API.
+**WeatherWhisper** is a lightning‑fast, cross‑platform command‑line interface (CLI) that delivers real‑time weather conditions and five‑day forecasts without ever opening a browser. It relies on the free **OpenWeatherMap** API, caches results locally to respect rate‑limits, and supports both metric and imperial units.
 
 ---
 
@@ -17,7 +13,8 @@
 5. [Usage](#usage)
 
    * [Command Reference](#command-reference)
-   * [Output Formats](#output-formats)
+   * [Common Flags](#common-flags)
+   * [Output Views](#output-views)
 6. [Configuration](#configuration)
 7. [Caching & Rate Limits](#caching--rate-limits)
 8. [Examples](#examples)
@@ -30,27 +27,52 @@
 
 ## Features
 
-* **Current conditions & 5‑day / hourly forecast** for any city or `lat,lon`
-* Metric *or* Imperial units (`-u metric|imperial`)
-* ANSI colour themes that match temperature & conditions *(toggle with `--no-color`)*
-* ASCII art icons for common weather types *(toggle with `--no-ascii`)*
-* Output views: **brief**, **detailed**, **json**, **forecast**
-* Save unlimited **favourites** for one‑command lookup
-* Transparent on‑disk **caching** to reduce API calls
-* Sunrise / sunset, wind, humidity, pressure, visibility, clouds
-* Extensible plug‑in architecture (see *Roadmap*)
+* **Current conditions & five‑day / three‑hour forecasts** for any city or `lat,lon` pair.
+* Choose **metric** or **imperial** units with `-u metric|imperial`.
+* Colour‑coded output that visually maps temperature and conditions (toggle with `--no-color`).
+* Optional ASCII weather icons for quick visual context (toggle with `--no-ascii`).
+* Multiple **output views**: `brief`, `detailed`, `json`, and `forecast`.
+* Save unlimited **favourites** for one‑command look‑ups.
+* Transparent on‑disk **caching** to reduce API calls and speed up responses.
+* Extra data points: sunrise / sunset, wind, humidity, pressure, visibility, cloud cover.
+* Designed for future **plug‑in providers** (AccuWeather, WeatherKit, etc.).
+
+---
+
+## Quick Demo
+
+Below is a brief text‑only illustration of what you can expect. Replace `«location»` with a real city or coordinates:
+
+```bash
+$ weatherwhisper current "«location»"
+London • 2025‑06‑07 22:14
+Temp      18 °C  (feels 17 °C)
+Condition Clear
+Wind      4 m/s  NW
+Humidity  60 %
+Sunset    21:08
+```
+
+```bash
+$ weatherwhisper forecast "«location»" -u imperial -f forecast
+Sun  • 73 °F / 55 °F  Partly cloudy
+Mon  • 70 °F / 54 °F  Light rain
+Tue  • 69 °F / 50 °F  Clear
+Wed  • 71 °F / 51 °F  Clear
+Thu  • 74 °F / 57 °F  Few clouds
+```
 
 ---
 
 ## Installation
 
 ```bash
-pip install --upgrade weatherwhisper   # Python ≥ 3.7
+pip install --upgrade weatherwhisper   # Requires Python ≥ 3.7
 ```
 
-First launch creates `~/.weatherwhisper/config.ini`.
+On first launch, WeatherWhisper creates a config file at `~/.weatherwhisper/config.ini`.
 
-### Alternate Install
+### Alternate Install (development mode)
 
 ```bash
 git clone https://github.com/danushgopinath/weatherwhisper.git
@@ -64,14 +86,14 @@ pip install -e .
 ## Get an API Key
 
 1. Sign up at [https://openweathermap.org/api](https://openweathermap.org/api).
-2. Copy the 32‑character key.
-3. One‑time setup:
+2. Copy your **32‑character** API key.
+3. One‑time configuration:
 
 ```bash
 weatherwhisper config --api-key YOUR_KEY
 ```
 
-The key is stored in `config.ini` so you only set it once.
+The key is stored in `config.ini` so you only need to set it once.
 
 ---
 
@@ -79,80 +101,77 @@ The key is stored in `config.ini` so you only set it once.
 
 ### Command Reference
 
-| Command               | Purpose                 | Notes                   |                                  |                                       |
-| --------------------- | ----------------------- | ----------------------- | -------------------------------- | ------------------------------------- |
-| `current <location>`  | Current conditions      | City name or `lat,lon`  |                                  |                                       |
-| `forecast <location>` | 5‑day / 3‑hour forecast | Same locations as above |                                  |                                       |
-| \`favorites add       | list                    | remove\`                | Manage favourites                | 1st favourite is the default location |
-| \`config show         | set\`                   | View or change config   | Any flag can be saved as default |                                       |
+| Command               | Purpose                        | Accepted locations           |                                  |   |
+| --------------------- | ------------------------------ | ---------------------------- | -------------------------------- | - |
+| `current <location>`  | Current weather conditions     | City name or `lat,lon`       |                                  |   |
+| `forecast <location>` | Five‑day / three‑hour forecast | Same as above                |                                  |   |
+| \`favorites add       | list                           | remove\`                     | Manage favourite locations       | – |
+| \`config show         | set\`                          | View or update configuration | Any flag can be saved as default |   |
 
-Run `weatherwhisper --help` or `<command> --help` for every flag.
+Run `weatherwhisper --help` or `<command> --help` for a complete list of flags.
 
-#### Common Flags
+### Common Flags
 
-* `-u, --units metric|imperial`  – Choose °C/m or °F/mi
-* `-f, --format brief|detailed|json|forecast` – Output view
-* `--no-color` – Disable ANSI colours (logs & scripts)
-* `--no-ascii` – Hide ASCII weather icons
-* `--cache <minutes>` – Override default cache TTL
+* `-u, --units metric|imperial`  — Choose °C / m or °F / mi.
+* `-f, --format brief|detailed|json|forecast` — Select output view.
+* `--no-color` — Disable ANSI colours (useful in logs and scripts).
+* `--no-ascii` — Hide ASCII weather icons.
+* `--cache <minutes>` — Override the default cache time‑to‑live.
 
-### Output Formats
+### Output Views
 
-| View         | Example                                 |
-| ------------ | --------------------------------------- |
-| **Brief**    | ![brief](images/brief.png)              |
-| **Forecast** | ![forecast](images/forecast.png)        |
-| **JSON**     | `{ "temp": 15.3, "condition": "Rain" }` |
+| View       | Description                                         |
+| ---------- | --------------------------------------------------- |
+| `brief`    | One‑line summary per location.                      |
+| `json`     | Raw JSON suitable for scripting.                    |
+| `forecast` | Five‑day grid with daily highs/lows and conditions. |
 
 ---
 
 ## Configuration
 
-`~/.weatherwhisper/config.ini` (created on first run):
+WeatherWhisper stores preferences in `~/.weatherwhisper/config.ini`:
 
 ```ini
 [general]
 api_key = YOUR_KEY_HERE
-units = metric
-color = true
-ascii = true
-cache_minutes = 15
+units = metric          # metric or imperial
+color = true            # true or false
+ascii = true            # true or false
+cache_minutes = 15      # default cache duration
 ```
 
-Edit by hand *or* use the CLI:
+You may edit the file directly *or* manipulate it via the CLI:
 
 ```bash
 weatherwhisper config set --units imperial --no-color
 weatherwhisper config show
 ```
 
-![Config sample](images/config.png)
-
 ---
 
 ## Caching & Rate Limits
 
-* All responses are cached on disk for **15 minutes** by default.
-* Cache is keyed by **endpoint + location + units**.
-* Pass `--cache 0` to force a live API request.
-
-This keeps most users well below the free‐tier limit of **60 calls / minute**.
+* All API responses are cached on disk for **15 minutes** by default.
+* Cache entries are keyed by **endpoint + location + units**.
+* Pass `--cache 0` to bypass the cache and request live data.
+* The default settings keep most users well below the free‑tier limit of **60 calls per minute**.
 
 ---
 
 ## Examples
 
 ```bash
-# Brief, coloured output
+# Show current weather for Paris in the default view.
 weatherwhisper current "Paris"
 
-# JSON for scripting
+# Retrieve JSON output for London and pipe the temperature to jq.
 weatherwhisper current "51.5074,-0.1278" -f json | jq .temp
 
-# Forecast grid with no ASCII art
-weatherwhisper forecast "Tokyo" --no-ascii
+# Display a colour‑free forecast grid for Tokyo.
+weatherwhisper forecast "Tokyo" --no-ascii --no-color
 
-# Use the first favourite automatically
+# Use your first favourite automatically (if favourites exist).
 weatherwhisper current
 ```
 
@@ -160,23 +179,21 @@ weatherwhisper current
 
 ## Development
 
-📁 **Repo layout**
-
-```text
+```
 weatherwhisper/
- ├─ images/              # PNG assets (banner, output samples)
+ ├─ images/              # PNG assets (optional; not required for CLI)
  ├─ __init__.py
  ├─ api.py               # API request & response logic
  ├─ cli.py               # Main CLI entry point
  ├─ config.py            # Config file parsing & CLI setters
- ├─ formatter.py         # Output formatting (color, ASCII)
+ ├─ formatter.py         # Output colour & ASCII rendering
 LICENSE
 pyproject.toml
 setup.py
 README.md
 ```
 
-\### Set Up Dev Env
+\### Set Up Dev Environment
 
 ```bash
 git clone https://github.com/danushgopinath/weatherwhisper.git
@@ -192,7 +209,7 @@ Run from source:
 python -m weatherwhisper current "London"
 ```
 
-Tests:
+Execute test suite:
 
 ```bash
 pytest -q
@@ -202,26 +219,24 @@ pytest -q
 
 ## Roadmap
 
-![Plugin architecture](images/plugin_arch.png)
+* **Plug‑in system**: drop‑in providers (AccuWeather, WeatherKit, & more).
+* **Historical weather**: optional add‑on for paid API tiers.
+* **Severe weather alerts**: push notifications for advisories.
+* **Auto‑detect location**: IP or GPS‑based geolocation.
+* **GUI wrapper**: optional desktop interface (Tkinter / Electron).
 
-* 🔌 **Plugin system** – drop‑in providers (AccuWeather, WeatherKit…)
-* 📈 Historical weather (paid API)
-* 🚨 Severe weather alerts
-* 📍 Auto‑detect location (IP/GPS)
-* 🖼️ GUI wrapper (Tkinter / Electron)
-
-Track progress in the [project board](https://github.com/danushgopinath/weatherwhisper/projects).
+Track progress on the [project board](https://github.com/danushgopinath/weatherwhisper/projects).
 
 ---
 
 ## Contributing
 
-1. **Fork** → clone → create a feature branch.
-2. `pre-commit install` (runs *black*, *ruff*, & tests automatically).
-3. Write or update **tests**.
-4. Open a **Pull Request** with a clear description.
+1. **Fork**, clone, and create a feature branch.
+2. Run `pre-commit install` (formats code and runs tests on commit).
+3. Write or update **tests** for your changes.
+4. Open a **Pull Request** with a clear description of the feature or fix.
 
-All feedback & PRs are welcome—check outstanding [issues](https://github.com/danushgopinath/weatherwhisper/issues) or open a new one.
+All feedback and PRs are welcome—check open [issues](https://github.com/danushgopinath/weatherwhisper/issues) or start a new one.
 
 ---
 
